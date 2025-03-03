@@ -1,1 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Candidatura de Staff</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1b1b1b, #252525);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #00ff99;
+            text-shadow: 0 0 10px rgba(0, 255, 153, 0.5);
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin: 20px 0;
+        }
+        label {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            font-size: 1rem;
+            background-color: #333;
+            color: #fff;
+            border: 2px solid #444;
+            border-radius: 10px;
+            outline: none;
+            box-sizing: border-box;
+        }
+        select {
+            background-color: #444;
+        }
+        textarea {
+            height: 120px;
+            resize: none;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #00ff99;
+            color: #000;
+            border: none;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .submit-btn:hover {
+            background-color: #00cc7a;
+        }
+        .limit-message {
+            font-size: 0.9rem;
+            color: #ff4d4d;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .saved-message {
+            font-size: 1rem;
+            color: #00ff99;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .staffs-section {
+            margin-top: 40px;
+        }
+        .staff {
+            background-color: #333;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+        .staff h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #00ff99;
+        }
+        .staff p {
+            margin: 10px 0;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Formulário para Candidatura de Staff</h1>
+        <form id="staffForm">
+            <div class="form-group">
+                <label for="name">Seu nome:</label>
+                <input type="text" id="name" name="name" placeholder="Digite seu nome" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Escolha sua função:</label>
+                <select id="role" name="role" required>
+                    <option value="" disabled selected>Selecione uma função</option>
+                    <option value="Moderador">Moderador</option>
+                    <option value="Desenvolvedor">Desenvolvedor</option>
+                    <option value="Gerente de Comunidade">Gerente de Comunidade</option>
+                    <option value="Suporte">Suporte</option>
+                    <option value="Design">Design</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="experience">Qual é sua experiência anterior nessa função?</label>
+                <textarea id="experience" name="experience" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="skills">Quais habilidades você possui para essa função?</label>
+                <textarea id="skills" name="skills" required></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Enviar Formulário</button>
+        </form>
+
+        <div id="savedMessage" class="saved-message" style="display: none;">
+            Suas respostas foram salvas com sucesso!
+        </div>
+
+        <div class="staffs-section">
+            <h2>Staffs Cadastrados:</h2>
+            <div id="staffsList"></div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('staffForm');
+        const savedMessage = document.getElementById('savedMessage');
+        const staffsList = document.getElementById('staffsList');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const formEntries = {};
+            formData.forEach((value, key) => {
+                formEntries[key] = value;
+            });
+
+            try {
+                const response = await fetch('http://localhost:3000/submit-form', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formEntries),
+                });
+
+                if (response.ok) {
+                    savedMessage.style.display = 'block';
+                    displayStaffs();
+                } else {
+                    alert('Erro ao enviar os dados');
+                }
+            } catch (error) {
+                console.error('Erro ao enviar os dados:', error);
+                alert('Erro ao enviar os dados');
+            }
+        });
+
+        // Carregar os dados salvos ao carregar a página
+        window.onload = async function() {
+            const response = await fetch('http://localhost:3000/staffs');
+            const staffData = await response.json();
+
+            staffsList.innerHTML = '';
+            staffData.forEach((staff, index) => {
+                const staffDiv = document.createElement('div');
+                staffDiv.classList.add('staff');
+                staffDiv.innerHTML = `
+                    <h3>Cadastro #${index + 1}</h3>
+                    <p><strong>Nome:</strong> ${staff.name}</p>
+                    <p><strong>Função:</strong> ${staff.role}</p>
+                    <p><strong>Experiência:</strong> ${staff.experience}</p>
+                    <p><strong>Habilidades:</strong> ${staff.skills}</p>
+                `;
+                staffsList.appendChild(staffDiv);
+            });
+        };
+    </script>
+</body>
+</html>
 
