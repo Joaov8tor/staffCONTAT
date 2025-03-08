@@ -127,11 +127,46 @@
         <div id="savedMessage" class="saved-message">
             Entrevista finalizada com sucesso!
         </div>
+        <div class="staffs-section" id="staffsSection">
+            <h2>Histórico de Entrevistas</h2>
+        </div>
     </div>
     <script>
         function finalizarEntrevista() {
+            const name = document.getElementById('name').value;
+            const role = document.getElementById('role').value;
+            const experience = document.getElementById('experience').value;
+            const skills = document.getElementById('skills').value;
+
+            if (!name || !role || !experience || !skills) {
+                alert('Preencha todos os campos antes de finalizar a entrevista!');
+                return;
+            }
+
+            const staffData = { name, role, experience, skills };
+            let staffs = JSON.parse(localStorage.getItem('staffs')) || [];
+            staffs.push(staffData);
+            localStorage.setItem('staffs', JSON.stringify(staffs));
+
             document.getElementById('savedMessage').style.display = 'block';
+            atualizarHistorico();
         }
+
+        function atualizarHistorico() {
+            const staffsSection = document.getElementById('staffsSection');
+            staffsSection.innerHTML = '<h2>Histórico de Entrevistas</h2>';
+            let staffs = JSON.parse(localStorage.getItem('staffs')) || [];
+            staffs.forEach(staff => {
+                const staffDiv = document.createElement('div');
+                staffDiv.classList.add('staff');
+                staffDiv.innerHTML = `<h3>${staff.name} - ${staff.role}</h3>
+                                      <p><strong>Experiência:</strong> ${staff.experience}</p>
+                                      <p><strong>Habilidades:</strong> ${staff.skills}</p>`;
+                staffsSection.appendChild(staffDiv);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', atualizarHistorico);
     </script>
 </body>
 </html>
